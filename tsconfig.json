@@ -14,7 +14,7 @@
         "esModuleInterop": true,
         "ignoreDeprecations": "6.0",
         // For nodejs:
-        // "lib": ["esnext"],
+        "lib": ["ES6"],
         // "types": ["node"],
         // and npm install -D @types/node
 
@@ -42,7 +42,9 @@
         "isolatedModules": true,
         "noUncheckedSideEffectImports": true,
         "moduleDetection": "force",
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true
     },
-    "include": ["src/**/*.ts", "*.spec.ts"]
+    "include": ["src/**/*.ts", "tests/**/*.spec.ts", "*.spec.ts"]
 }
