@@ -37,6 +37,7 @@
 
         // Recommended Options
         "strict": true,
+        "strictPropertyInitialization": false,
         "jsx": "react-jsx",
         "verbatimModuleSyntax": false,
         "isolatedModules": true,
@@ -46,5 +47,5 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true
     },
-    "include": ["src/**/*.ts", "tests/**/*.spec.ts", "*.spec.ts"]
+    "include": ["src/**/*.ts", "tests/**/*.ts", "*.spec.ts"]
 }
