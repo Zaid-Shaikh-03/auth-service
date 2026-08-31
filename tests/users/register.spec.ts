@@ -78,6 +78,24 @@ describe("POST /auth/register", () => {
             expect(users[0]?.lastName).toBe(userData.lastName);
             expect(users[0]?.email).toBe(userData.email);
         });
+
+        it("should return an id of the created user", async () => {
+            //AAA (Arrage, Act, Assert)
+            //1.Arrage
+            const userData = {
+                firstName: "Abc",
+                lastName: "xyz",
+                email: "Abcxyz@gmail.com",
+                password: "secret",
+            };
+            //2.Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //3.Assert
+            expect(response.status).toBe(201);
+            expect(response.body).toHaveProperty("id");
+        });
     });
 
     describe("fields are missing", () => {
