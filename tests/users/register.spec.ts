@@ -4,6 +4,7 @@ import { DataSource } from "typeorm";
 import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entities/User";
 import { Roles } from "../../src/constants";
+import { isJwt } from "../utils";
 
 describe("POST /auth/register", () => {
     let connection: DataSource;
@@ -131,7 +132,7 @@ describe("POST /auth/register", () => {
             //3.Assert
             const userRepository = connection.getRepository(User);
             const users = await userRepository.find();
-            console.log(users[0]?.password);
+            // console.log(users[0]?.password);
             expect(users[0]?.password).not.toBe(userData.password);
             expect(users[0]?.password).toHaveLength(60);
             expect(users[0]?.password).toMatch(/^\$2b\$\d+\$/);
@@ -158,13 +159,50 @@ describe("POST /auth/register", () => {
             expect(response.statusCode).toBe(400);
             expect(users).toHaveLength(1);
         });
+
+        it("should return the access token and refresh token inside a cookie", async () => {
+            //1.Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "xyz",
+                email: "abcxyz@gmail.com",
+                password: "secret",
+            };
+            //2.Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            interface CookieHeaders {
+                ["set-cookie"]: string[];
+            }
+            //3.Assert
+            let accessToken: string | null = null;
+            let refreshToken: string | null = null;
+            const cookies =
+                (response.headers as unknown as CookieHeaders)["set-cookie"] ||
+                [];
+            cookies.forEach((cookie) => {
+                if (cookie.startsWith("accessToken=")) {
+                    accessToken = cookie.split(";")[0]?.split("=")[1] || null;
+                }
+                if (cookie.startsWith("refreshToken=")) {
+                    refreshToken = cookie.split(";")[0]?.split("=")[1] || null;
+                }
+            });
+
+            expect(accessToken).not.toBe(null);
+            expect(refreshToken).not.toBe(null);
+
+            expect(isJwt(accessToken)).toBeTruthy();
+            expect(isJwt(refreshToken)).toBeTruthy();
+        });
     });
 
     describe("fields are missing", () => {
         it("should return 400 status code if email field is missing", async () => {
             //Arrage
             const userData = {
-                firname: "abc",
+                firstName: "abc",
                 lastName: "xyz",
                 email: "",
                 password: "secret",
@@ -178,6 +216,130 @@ describe("POST /auth/register", () => {
             const userRepository = connection.getRepository(User);
             const users = await userRepository.find();
             expect(users).toHaveLength(0);
+        });
+        ///
+        it("should return 400 status code if firstName field is missing", async () => {
+            //Arrage
+            const userData = {
+                firstName: "",
+                lastName: "xyz",
+                email: "abcxyz@gmail.com",
+                password: "secret",
+            };
+            //Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //Assert
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return 400 status code if lastName field is missing", async () => {
+            //Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "",
+                email: "abcxyz@gmail.com",
+                password: "secret",
+            };
+            //Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //Assert
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return 400 status code if password field is missing", async () => {
+            //Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "xyz",
+                email: "abcxyz@gmail.com",
+                password: "",
+            };
+            //Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //Assert
+            expect(response.statusCode).toBe(400);
+        });
+    });
+
+    describe("Fields are not in proper format", () => {
+        it("should trim the email field", async () => {
+            //Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "xyz",
+                email: " abcxyz@gmail.com ",
+                password: "secret",
+            };
+            //Act
+            await request(app).post("/auth/register").send(userData);
+
+            //Assert
+            const userRepository = connection.getRepository(User);
+            const users = await userRepository.find();
+            const user = users[0];
+            expect(user?.email).toBe(userData.email.trim());
+        });
+
+        // it("should return 400 status code if email field is not valid email", async () => {
+        //     //Arrage
+        //     const userData = {
+        //         firstName: "abc",
+        //         lastName: "xyz",
+        //         email: " abcxyz@gmail.com ",
+        //         password: "secret",
+        //     };
+        //     //Act
+        //      await request(app)
+        //         .post("/auth/register")
+        //         .send(userData);
+        //     //Assert
+        //     const userRepository = connection.getRepository(User);
+        //     const users = await userRepository.find();
+        //     const user = users[0];
+        //     expect(user?.email).toBe(userData.email.trim());
+        // });
+
+        it("should return 400 status code if password length is less than 6 characters", async () => {
+            //Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "xyz",
+                email: "abcxyz@gmail.com",
+                password: "secre",
+            };
+            //Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //Assert
+            expect(response.statusCode).toBe(400);
+        });
+
+        it("should return an array of error messages if email is missing", async () => {
+            //Arrage
+            const userData = {
+                firstName: "",
+                lastName: "",
+                email: "",
+                password: "",
+            };
+            //Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            // console.log(response.body);
+            //Assert
+            expect(response.statusCode).toBe(400);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            expect(response.body?.errors).toBeDefined();
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+            expect(response.body?.errors).toBeInstanceOf(Array);
         });
     });
 });
