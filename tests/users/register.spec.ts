@@ -5,6 +5,7 @@ import { AppDataSource } from "../../src/config/data-source";
 import { User } from "../../src/entities/User";
 import { Roles } from "../../src/constants";
 import { isJwt } from "../utils";
+import { RefreshToken } from "../../src/entities/RefreshToken";
 
 describe("POST /auth/register", () => {
     let connection: DataSource;
@@ -196,6 +197,32 @@ describe("POST /auth/register", () => {
             expect(isJwt(accessToken)).toBeTruthy();
             expect(isJwt(refreshToken)).toBeTruthy();
         });
+
+        it("should store the refresh token in the database", async () => {
+            //1.Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "xyz",
+                email: "abcxyz@gmail.com",
+                password: "secret",
+            };
+            //2.Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //3.Assert
+            const refreshTokenRepo = connection.getRepository(RefreshToken);
+            // const refreshTokens = await refreshTokenRepo.find();
+            // expect(refreshTokas Record<string, string>ens).toHaveLength(1);
+
+            const tokens = await refreshTokenRepo
+                .createQueryBuilder("refreshToken")
+                .where("refreshToken.userId = :userId", {
+                    userId: (response.body as Record<string, string>).id,
+                })
+                .getMany();
+            expect(tokens).toHaveLength(1);
+        });
     });
 
     describe("fields are missing", () => {
@@ -286,24 +313,21 @@ describe("POST /auth/register", () => {
             expect(user?.email).toBe(userData.email.trim());
         });
 
-        // it("should return 400 status code if email field is not valid email", async () => {
-        //     //Arrage
-        //     const userData = {
-        //         firstName: "abc",
-        //         lastName: "xyz",
-        //         email: " abcxyz@gmail.com ",
-        //         password: "secret",
-        //     };
-        //     //Act
-        //      await request(app)
-        //         .post("/auth/register")
-        //         .send(userData);
-        //     //Assert
-        //     const userRepository = connection.getRepository(User);
-        //     const users = await userRepository.find();
-        //     const user = users[0];
-        //     expect(user?.email).toBe(userData.email.trim());
-        // });
+        it("should return 400 status code if email field is not valid email", async () => {
+            //Arrage
+            const userData = {
+                firstName: "abc",
+                lastName: "xyz",
+                email: " abcxyzgmail.com ",
+                password: "secret",
+            };
+            //Act
+            const response = await request(app)
+                .post("/auth/register")
+                .send(userData);
+            //Assert
+            expect(response.statusCode).toBe(400);
+        });
 
         it("should return 400 status code if password length is less than 6 characters", async () => {
             //Arrage

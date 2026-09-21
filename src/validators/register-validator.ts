@@ -15,6 +15,9 @@ export default checkSchema({
         errorMessage: "Email is required",
         notEmpty: true,
         trim: true,
+        isEmail: {
+            errorMessage: "Email is invalid",
+        },
     },
     password: {
         isLength: {
