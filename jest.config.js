@@ -8,5 +8,6 @@ module.exports = {
     transform: {
         ...tsJestTransformCfg,
     },
+    transformIgnorePatterns: ["node_modules/(?!(jose|jwks-rsa))"],
     verbose: true,
 };

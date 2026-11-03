@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { NextFunction, Response } from "express";
-import { RegisterUserRequest } from "../types";
+import { AuthRequest, RegisterUserRequest } from "../types";
 import { UserService } from "../services/UserService";
 import { Logger } from "winston";
 import { validationResult } from "express-validator";
@@ -205,5 +205,10 @@ export class AuthController {
             next(err);
             return;
         }
+    }
+
+    async self(req: AuthRequest, res: Response) {
+        const user = await this.userService.findbyId(Number(req.auth.sub));
+        res.status(200).json({ ...user, password: undefined });
     }
 }

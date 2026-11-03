@@ -19,6 +19,7 @@ const envSchema = z.object({
         .string()
         .min(32)
         .regex(/^[a-zA-Z0-9]+$/, "must contain only alphanumeric characters"),
+    JWKS_URI: z.string(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -45,4 +46,5 @@ export const Config = Object.freeze({
     DB_PASSWORD: parsedEnv.data.DB_PASSWORD,
     DB_NAME: parsedEnv.data.DB_NAME,
     REFRESH_TOKEN_SECRET: parsedEnv.data.REFRESH_TOKEN_SECRET,
+    JWKS_URI: parsedEnv.data.JWKS_URI,
 });
