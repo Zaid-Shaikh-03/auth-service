@@ -28,7 +28,7 @@ jobs:
           DB_USERNAME: ${{ secrets.TEST_DB_USERNAME }}
           DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
           DB_NAME: ${{ secrets.TEST_DB_NAME }}
-          REFRESH_TOKEN_secrets: ${{ secrets.TEST_REFRESH_TOKEN_secrets }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.TEST_REFRESH_TOKEN_SECRET }}
           JWKS_URI: ${{ secrets.JWKS_URI }}
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       - name: Build-ts
