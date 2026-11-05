@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build the project
+    runs-on: ubuntu-latest
+    #if: github.event_name == 'pull request'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependecies
+        run: npm ci
+      - name: Run eslint
+        run: npm run lint
+      - name: Test and coverage
+        run: npm run test
+        env:
+          DB_HOST: ${{ secret.TEST_DB_HOST }}
+          DB_PORT: ${{ secret.TEST_DB_PORT }}
+          DB_USERNAME: ${{ secret.TEST_DB_USERNAME }}
+          DB_PASSWORD: ${{ secret.TEST_DB_PASSWORD }}
+          DB_NAME: ${{ secret.TEST_DB_NAME }}
+          REFRESH_TOKEN_SECRET: ${{ secret.TEST_REFRESH_TOKEN_SECRET }}
+          JWKS_URI: ${{ secret.JWKS_URI }}
+          PRIVATE_KEY: ${{ secret.PRIVATE_KEY }}
+      - name: Build-ts
+        run: npm run build
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secret.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secret.SONAR_TOKEN }}
+
+
+  build-and-push-docker:
+    name: Build and push Docker Image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_NAME: zaidshaikh03/authservice_test_image
+      IMAGE_TAG: build-${{ github.run_number }}
+    if: github.ref == 'ref/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secret.DOCKERHUB_USERNAME }}
+          password: ${{ secret.DOCKERHUB_PASSWORD }}
+      - name: Build Docker Image
+        run: docker build -t ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} -f docker/prod/Dockerfile .
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
