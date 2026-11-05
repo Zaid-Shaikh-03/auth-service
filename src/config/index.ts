@@ -43,7 +43,8 @@ const envSchema = z.object({
             } catch {
                 return false;
             }
-        }, "must be a valid private key"),
+        }, "must be a valid private key")
+        .optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
