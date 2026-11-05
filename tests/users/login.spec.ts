@@ -21,7 +21,9 @@ describe("POST /auth/login", () => {
     });
 
     afterAll(async () => {
-        await connection.destroy();
+        if (connection?.isInitialized) {
+            await connection.destroy();
+        }
     });
 
     const userData = {

@@ -26,7 +26,9 @@ describe("Get /auth/self", () => {
     });
 
     afterAll(async () => {
-        await connection.destroy();
+        if (connection?.isInitialized) {
+            await connection.destroy();
+        }
     });
 
     const userData = {
@@ -47,8 +49,13 @@ describe("Get /auth/self", () => {
 
     describe("Given all fields", () => {
         it("should return the 200 status code", async () => {
+            const userRepository = connection.getRepository(User);
+            const user = await userRepository.save({
+                ...userData,
+                role: Roles.CUSTOMER,
+            });
             const accessToken = jwks.token({
-                sub: "1",
+                sub: String(user.id),
                 role: Roles.CUSTOMER,
             });
             const response = await request(app)

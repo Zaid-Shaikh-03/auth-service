@@ -44,11 +44,13 @@ export class AuthController {
                 password,
             });
             this.logger.info("User has been registered", { id: user.id });
-            let privatekey: Buffer;
+            let privatekey: string | Buffer;
             try {
-                privatekey = fs.readFileSync(
-                    path.join(__dirname, "../../certs/private.pem"),
-                );
+                privatekey =
+                    Config.PRIVATE_KEY ??
+                    fs.readFileSync(
+                        path.join(__dirname, "../../certs/private.pem"),
+                    );
             } catch {
                 const error = createHttpError(
                     500,
@@ -143,11 +145,13 @@ export class AuthController {
                 return;
             }
 
-            let privatekey: Buffer;
+            let privatekey: string | Buffer;
             try {
-                privatekey = fs.readFileSync(
-                    path.join(__dirname, "../../certs/private.pem"),
-                );
+                privatekey =
+                    Config.PRIVATE_KEY ??
+                    fs.readFileSync(
+                        path.join(__dirname, "../../certs/private.pem"),
+                    );
             } catch {
                 const error = createHttpError(
                     500,
