@@ -20,7 +20,7 @@ jobs:
       - name: Run eslint
         run: npm run lint:check
       - name: Test and coverage
-        run: npm run test
+        run: npm run test -- --watchAll=false --runInBand
         env:
           DB_HOST: ${{ secrets.TEST_DB_HOST }}
           DB_PORT: ${{ secrets.TEST_DB_PORT }}
