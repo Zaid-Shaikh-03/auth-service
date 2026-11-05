@@ -1,6 +1,7 @@
 import { config } from "dotenv";
 import { z } from "zod";
 import path from "path";
+import { createPrivateKey } from "crypto";
 
 config({
     path: path.join(__dirname, `../../.env.${process.env.NODE_ENV}`),
@@ -19,7 +20,30 @@ const envSchema = z.object({
         .string()
         .min(32)
         .regex(/^[a-zA-Z0-9]+$/, "must contain only alphanumeric characters"),
-    JWKS_URI: z.string(),
+    JWKS_URI: z
+        .url()
+        .refine(
+            (value) =>
+                value.startsWith("http://") || value.startsWith("https://"),
+            "must use the http or https protocol",
+        ),
+    PRIVATE_KEY: z
+        .string()
+        .transform((value) => value.replace(/\\n/g, "\n").trim())
+        .refine(
+            (value) =>
+                value.startsWith("-----BEGIN RSA PRIVATE KEY-----") &&
+                value.endsWith("-----END RSA PRIVATE KEY-----"),
+            "must be a PEM-encoded RSA private key",
+        )
+        .refine((value) => {
+            try {
+                createPrivateKey(value);
+                return true;
+            } catch {
+                return false;
+            }
+        }, "must be a valid private key"),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);
@@ -47,4 +71,5 @@ export const Config = Object.freeze({
     DB_NAME: parsedEnv.data.DB_NAME,
     REFRESH_TOKEN_SECRET: parsedEnv.data.REFRESH_TOKEN_SECRET,
     JWKS_URI: parsedEnv.data.JWKS_URI,
+    PRIVATE_KEY: parsedEnv.data.PRIVATE_KEY,
 });
