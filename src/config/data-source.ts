@@ -11,6 +11,13 @@ export const AppDataSource = new DataSource({
     username: Config.DB_USERNAME,
     password: Config.DB_PASSWORD,
     database: Config.DB_NAME,
+    ssl:
+        Config.DB_HOST === "localhost" || Config.DB_HOST === "127.0.0.1"
+            ? false
+            : { rejectUnauthorized: false },
+    extra: {
+        family: 4,
+    },
     //dont use this in production, always keep false
     synchronize: false,
     logging: false,

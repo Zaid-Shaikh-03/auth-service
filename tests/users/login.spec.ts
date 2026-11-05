@@ -13,11 +13,13 @@ describe("POST /auth/login", () => {
 
     beforeAll(async () => {
         connection = await AppDataSource.initialize();
+        await connection.synchronize(true);
     });
 
     beforeEach(async () => {
-        await connection.dropDatabase();
-        await connection.synchronize();
+        await connection.query(
+            'TRUNCATE TABLE "refresh_token", "user" RESTART IDENTITY CASCADE',
+        );
     });
 
     afterAll(async () => {

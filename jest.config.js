@@ -6,6 +6,7 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 module.exports = {
     testEnvironment: "node",
     testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+    testTimeout: 30000,
     transform: {
         ...tsJestTransformCfg,
     },

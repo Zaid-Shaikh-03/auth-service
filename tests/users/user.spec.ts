@@ -13,12 +13,14 @@ describe("Get /auth/self", () => {
     beforeAll(async () => {
         jwks = createJWKSMock("http://localhost:5501");
         connection = await AppDataSource.initialize();
+        await connection.synchronize(true);
     });
 
     beforeEach(async () => {
         jwks.start();
-        await connection.dropDatabase();
-        await connection.synchronize();
+        await connection.query(
+            'TRUNCATE TABLE "refresh_token", "user" RESTART IDENTITY CASCADE',
+        );
     });
 
     afterEach(() => {
