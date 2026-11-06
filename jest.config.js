@@ -12,4 +12,11 @@ module.exports = {
     },
     transformIgnorePatterns: ["node_modules/(?!(jose|jwks-rsa))"],
     verbose: true,
+    collectCoverage: true,
+    coverageProvider: "v8",
+    collectCoverageFrom: [
+        "src/**/*.ts",
+        "!tests/**",
+        "!**/node_modules/**"
+    ]
 };
